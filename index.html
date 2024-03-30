@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="content-wrapper">
+        <div class="PQM-wrapper">
+            <div class="row">
+                <span>Введите p:</span>
+                <input type="text" class="input" placeholder="p" id="p" />
+            </div>
+            <div class="row">
+                <span>Введите q:</span>
+                <input type="text" class="input" placeholder="q" id="q" />
+            </div>
+            <div class="row">
+                <span>Введите m:</span>
+                <input type="text" class="input" placeholder="m" id="m" />
+            </div>
+            <div class="row">
+                <span>Введите кол-во процессорных элементов:</span>
+                <input type="text" class="input" placeholder="m" id="n" />
+            </div>
+        </div>
+        <div class="operations-wrapper">
+            <div class="row">
+                <span>Время счёта для операции +:</span>
+                <input type="text" class="input" placeholder="Введите значение" id="sum" />
+            </div>
+            <div class="row">
+                <span>Время счёта для операции -:</span>
+                <input type="text" class="input" placeholder="Введите значение" id="diff" />
+            </div>
+            <div class="row">
+                <span>Время счёта для операции *:</span>
+                <input type="text" class="input" placeholder="Введите значение" id="mult" />
+            </div>
+            <div class="row">
+                <span>Время счёта для операции /:</span>
+                <input type="text" class="input" placeholder="Введите значение" id="div" />
+            </div>
+        </div>
+        <div class="row errors" id="errors"></div>
+        <button id="testButton">
+            Запуск
+        </button>
+        <div class="inputTable">
+            <div style="display: none" class="label">Матрица A:</div>
+            <div id="tableAWrapper"></div>
+        </div>
+        <div class="inputTable">
+            <div style="display: none" class="label">Матрица B:</div>
+            <div id="tableBWrapper"></div>
+        </div>
+        <div class="inputTable">
+            <div style="display: none" class="label">Матрица E:</div>
+            <div id="tableEWrapper"></div>
+        </div>
+        <div class="inputTable">
+            <div style="display: none" class="label">Матрица G:</div>
+            <div id="tableGWrapper"></div>
+        </div>
+        <div class="outputTable">
+            <div style="display: none" class="label">Итоговая матрица C:</div>
+            <div id="tableCWrapper"></div>
+        </div>
+        <div class="metrics">
+            <div>
+                <span style="display: none" class="label">T1: </span><span id="t1"></span>
+                <span style="display: none" class="label">Tn: </span><span id="tn"></span>
+                <span style="display: none" class="label">r: </span><span id="r"></span>
+                <span style="display: none" class="label">Ky: </span><span id="ky"></span>
+                <span style="display: none" class="label">e: </span><span id="e"></span>
+                <span style="display: none" class="label">D: </span><span id="d"></span>
+            </div>
+        </div>
+    </div>
+    <script src="./domManipulation.js"></script>
+    <script src="./index.js"></script>
+</body>
+</html>
