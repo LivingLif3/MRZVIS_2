@@ -1,8 +1,10 @@
 /*
 Лабораторная работа №2 по дисциплине МРЗВИС
 Выполнена студентами группы 121702 БГУИР Летко Александр, Пилат Максим
-Вариант 3: Вычисление матрицы значений C. 
+Вариант 1: Вычисление матрицы значений C. 
 1. (~) = x*y, /~\ = x*y, x~>y = 1+x*(y-1)
+
+Алгоритма обсуждался вместе с Зайцем и Колтовичем
 */
 const pInput = document.getElementById('p');
 const qInput = document.getElementById('q');
@@ -13,6 +15,12 @@ const sumInput = document.getElementById('sum');
 const diffInput = document.getElementById('diff');
 const multInput = document.getElementById('mult');
 const divInput = document.getElementById('div');
+
+const globalState = {
+  f: 0,
+  d: 0,
+  c: 0,
+};
 
 const TACT_SUM = 1;
 const TACT_MULT = 1;
@@ -60,7 +68,11 @@ function calculateF(i, j, k) {
   // countOfMult += 7;
   // countOfSum += 2;
   // countOfDiff += 3;
-  Tn += Math.floor((7 * multInput.value + 2 * sumInput.value + 3 * diffInput.value) / nInput.value);
+  let oldT = getT();
+
+  let countOfDiff = getCountOfDiff();
+  let countOfSum = getCountOfSum();
+  let countOfMult = getCountOfMult();
 
   let twoE0kMinus1 = difference(multiplication(2, e[0][k]), 1);
   let firstMultiplication = multiplication(
@@ -71,7 +83,7 @@ function calculateF(i, j, k) {
   let fourImplMinus2 = difference(multiplication(4, implication(a[i][k], b[k][j])), 2);
   let secondBracket = sum(1, multiplication(fourImplMinus2, e[0][k]));
 
-  return Number(
+  let res = Number(
     sum(
       firstMultiplication,
       multiplication(
@@ -80,14 +92,20 @@ function calculateF(i, j, k) {
       ),
     ).toFixed(3),
   );
-  // return Number(
-  //   (
-  //     implication(a[i][k], b[k][j]) * (2 * e[0][k] - 1) * e[0][k] +
-  //     implication(b[k][j], a[i][k]) *
-  //       (1 + (4 * implication(a[i][k], b[k][j]) - 2) * e[0][k]) *
-  //       (1 - e[0][k])
-  //   ).toFixed(3),
-  // );
+
+  Tn += Math.ceil(
+    (getCountOfDiff() +
+      getCountOfMult() +
+      getCountOfSum() -
+      countOfDiff -
+      countOfSum -
+      countOfMult) /
+      nInput.value,
+  );
+
+  globalState.f += 1;
+
+  return res;
 }
 
 function equialention(x, y) {
@@ -120,18 +138,29 @@ function multiplication(x, y) {
 function calculateMultiplicationRow(i, j) {
   let result = 1;
   // countOfMult += mInput.value - 1;
+
+  let fValues = [];
+  let multiplications = [];
+
   for (let index = 0; index < mInput.value; index++) {
-    result = multiplication(result, calculateF(i, j, index));
+    fValues.push(calculateF(i, j, index));
+    // result = multiplication(result, calculateF(i, j, index));
   }
-  Tn += Math.floor(((mInput.value - 1) * multInput.value) / nInput.value);
+  for (let index = 0; index < mInput.value; index++) {
+    multiplications.push(multiplication(1, fValues[index]));
+  }
+  result = multiplications.reduce((multipl, el) => el * multipl, 1);
+
+  Tn += Math.ceil((1 * mInput.value) / nInput.value);
+  // Tn += Math.floor((getT() - oldT) / nInput.value);
   return Number(result.toFixed(3));
 }
 
 function calculateCEl(i, j) {
-  // countOfSum += 2;
-  // countOfMult += 7;
-  // countOfDiff += 3;
-  Tn += Math.floor((7 * multInput.value + 2 * sumInput.value + 3 * diffInput.value) / nInput.value);
+  let oldT = getT();
+
+  let oldCountOfMult = getCountOfMult();
+  let oldCountOfDiff = getCountOfDiff();
 
   let firstMultiplicationBracket = multiplication(
     calculateMultiplicationRow(i, j),
@@ -151,8 +180,11 @@ function calculateCEl(i, j) {
     sum(calculateD(i, j), multiplication(secondMultiplicationBracket, g[i][j])),
   );
 
-  return Number(sum(firstMultiplicationBracket, secondPart).toFixed(3));
-
+  let res = Number(sum(firstMultiplicationBracket, secondPart).toFixed(3));
+  Tn += Math.ceil(13 / nInput.value);
+  globalState.c += 1;
+  // Tn += Math.floor((getT() - oldT) / nInput.value);
+  return res;
   // return Number(
   //   (
   //     calculateMultiplicationRow(i, j) * (3 * g[i][j] - 2) * g[i][j] +
@@ -169,20 +201,46 @@ function calculateCEl(i, j) {
 
 function calculateD(i, j) {
   let result = 1;
-  // countOfDiff += mInput.value - 1;
-  // countOfMult += mInput.value - 1;
+
+  // let oldT = getT();
+
+  let oldValMult = getCountOfMult();
+  let oldValDiff = getCountOfDiff();
+  let arr = [];
+
+  let differences = [];
+  let conjunctions = [];
+  let multiplications = [];
+
   for (let index = 0; index < mInput.value; index++) {
-    result = multiplication(result, difference(1, conjunction(a[i][index], b[index][j])));
-    // result *= 1 - conjunction(a[i][index], b[index][j]);
+    // Сделать как вектор
+    // let el = result.pop();
+    // if (result.length) {
+    conjunctions.push(conjunction(a[i][index], b[index][j]));
+    // result = multiplication(result, difference(1, conjunction(a[i][index], b[index][j])));
+    // arr.push(result);
+    // } else {
+    // result = multiplication(1, difference(1, conjunction(a[i][index], b[index][j])));
+    // }
+    // arr.push(result);
+    // result = multiplication(result.pop(), difference(1, conjunction(a[i][index], b[index][j])));
   }
-  // countOfDiff += 1;
-  Tn += Math.floor(
-    ((mInput.value - 1) * diffInput.value +
-      (mInput.value - 1) * multInput.value +
-      diffInput.value) /
-      nInput.value,
-  );
-  return Number(difference(1, result).toFixed(3));
+  for (let index = 0; index < mInput.value; index++) {
+    differences.push(difference(1, conjunctions[index]));
+  }
+  for (let index = 0; index < mInput.value; index++) {
+    multiplications.push(multiplication(1, differences[index]));
+  }
+  console.log(multiplications);
+  result = multiplications.reduce((multipl, el) => el * multipl, 1);
+  let res = Number(difference(1, result).toFixed(3));
+
+  Tn += Math.ceil((getCountOfMult() + getCountOfDiff() - oldValDiff - oldValMult) / nInput.value);
+  globalState.d += 1;
+
+  // Tn += Math.floor((getT() - oldT) / nInput.value);
+  if ((i == 0) & (j == 0)) console.log(res, 'DD');
+  return res;
 }
 
 function calculateCMattrix(valueAccosiations) {
@@ -197,7 +255,29 @@ function calculateCMattrix(valueAccosiations) {
   return C;
 }
 
+function getT() {
+  return (
+    countOfSum * Number(sumInput.value) +
+    countOfMult * Number(multInput.value) +
+    countOfDiff * Number(diffInput.value) +
+    countOfDiv * Number(divInput.value)
+  );
+}
+
+function getCountOfSum() {
+  return countOfSum * Number(sumInput.value);
+}
+
+function getCountOfMult() {
+  return countOfMult * Number(multInput.value);
+}
+
+function getCountOfDiff() {
+  return countOfDiff * Number(diffInput.value);
+}
+
 function start() {
+  Tn = 0;
   const inputs = document.getElementsByClassName('input');
   errorWrapperRef.innerHTML = '';
   for (let input of inputs) {
@@ -224,6 +304,7 @@ function start() {
     i: pInput.value,
     j: qInput.value,
   };
+
   clearTables();
   tableAWrapper.appendChild(createTable(a));
   tableBWrapper.appendChild(createTable(b));
@@ -232,12 +313,11 @@ function start() {
   showLabels();
 
   C = calculateCMattrix(valueAccosiations);
+
   tableCWrapper.appendChild(createTable(C));
-
-  const r = p.value * q.value * m.value;
-
-  console.log(countOfSum);
-  console.log(countOfMult);
+  //p.value * q.value * m.value;
+  console.log(p.value * m.value + m.value * q.value + +m.value + p.value * q.value, 'DSADADSA');
+  const r = Math.floor(p.value * m.value + m.value * q.value + +m.value + p.value * q.value);
 
   T1 =
     countOfSum * Number(sumInput.value) +
@@ -254,13 +334,134 @@ function start() {
       2 * countOfDiff * diffInput.value +
       2 * countOfDiv * divInput.value) /
     r;
-  console.log(Lsum, Lavg);
   const D = (Tn / Lavg).toFixed(3);
-
+  console.log(countOfSum, countOfMult, countOfDiff);
   t1Span.innerHTML = T1;
   tnSpan.innerHTML = Tn;
   rSpan.innerHTML = r;
   kySpan.innerHTML = Ky;
   eSpan.innerHTML = eEl;
   dSpan.innerHTML = D;
+
+  console.log(globalState, 'GLOBAL STATE');
+
+  return {
+    t1: T1,
+    tn: Tn,
+    r: r,
+    ky: Ky,
+    eEl,
+    d: D,
+  };
+}
+
+// function runForGraphs(p, m, q, n, sum = 1, mult = 1, diff = 1) {
+//   sumInput.value = sum;
+//   multInput.value = mult;
+//   diffInput.value = diff;
+//   divInput.value = 1;
+//   Tn = 0;
+//   nInput.value = n;
+//   let C = [];
+//   countOfSum = 0;
+//   countOfMult = 0;
+//   countOfDiv = 0;
+//   countOfDiff = 0;
+//   a = fillMattrix(p, m);
+//   b = fillMattrix(m, q);
+//   e = fillMattrix(1, m);
+//   g = fillMattrix(p, q);
+//   const valueAccosiations = {
+//     k: m,
+//     i: p,
+//     j: q,
+//   };
+
+//   C = calculateCMattrix(valueAccosiations);
+
+//   // tableCWrapper.appendChild(createTable(C));
+//   //p.value * q.value * m.value;
+//   const r = Math.floor(p * m + m * q + +m + p * q);
+
+//   T1 = countOfSum * 1 + +countOfMult * 1 + countOfDiff * 1 + countOfDiv;
+
+//   const Ky = (T1 / Tn).toFixed(3);
+//   const eEl = (Ky / nInput.value).toFixed(3);
+//   let Lsum = 1;
+//   let Lavg = (2 * countOfSum + 2 * countOfMult + 2 * countOfDiff + 2 * countOfDiv) / r;
+//   const D = (Tn / Lavg).toFixed(3);
+
+//   return {
+//     t1: T1,
+//     tn: Tn,
+//     r: r,
+//     ky: Ky,
+//     eEl,
+//     d: D,
+//   };
+// }
+
+function runForGraphs(p, m, q, n) {
+  sumInput.value = 1;
+  multInput.value = 1;
+  diffInput.value = 1;
+  Tn = 0;
+
+  pInput.value = p;
+  mInput.value = m;
+  qInput.value = q;
+
+  let C = [];
+  countOfSum = 0;
+  countOfMult = 0;
+  countOfDiv = 0;
+  countOfDiff = 0;
+
+  nInput.value = n;
+
+  console.log(pInput === p, m, q);
+  a = fillMattrix(p, m);
+  b = fillMattrix(m, q);
+  e = fillMattrix(1, m);
+  g = fillMattrix(p, q);
+
+  const valueAccosiations = {
+    k: m,
+    i: p,
+    j: q,
+  };
+
+  C = calculateCMattrix(valueAccosiations);
+
+  //p.value * q.value * m.value;
+  const r = Math.floor(p * m + m * q + +m + p * q);
+
+  T1 = countOfSum + countOfMult + countOfDiff + countOfDiv;
+
+  const Ky = (T1 / Tn).toFixed(3);
+  const eEl = (Ky / nInput.value).toFixed(3);
+  let Lsum = sumInput.value * multInput.value * diffInput.value * divInput.value;
+  let Lavg =
+    (2 * countOfSum * sumInput.value +
+      2 * countOfMult * multInput.value +
+      2 * countOfDiff * diffInput.value +
+      2 * countOfDiv * divInput.value) /
+    r;
+  const D = (Tn / Lavg).toFixed(3);
+  console.log(countOfSum, countOfMult, countOfDiff);
+  t1Span.innerHTML = T1;
+  tnSpan.innerHTML = Tn;
+  rSpan.innerHTML = r;
+  kySpan.innerHTML = Ky;
+  eSpan.innerHTML = eEl;
+  dSpan.innerHTML = D;
+
+  return {
+    t1: T1,
+    tn: Tn,
+    r: r,
+    ky: Ky,
+    eEl,
+    d: D,
+  };
 }
